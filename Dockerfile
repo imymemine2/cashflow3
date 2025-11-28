@@ -1,22 +1,18 @@
-# ベースイメージの指定
-FROM node:20-alpine
+# 1. Java 17の環境を用意する
+FROM eclipse-temurin:17-jdk-alpine
 
-# 作業ディレクトリの設定
-WORKDIR /usr/src/app
+# 2. 作業フォルダを作る
+WORKDIR /app
 
-# package.jsonとpackage-lock.jsonをコピー
-# package-lock.jsonがない場合もエラーにならないよう、複数行に分けます。
-COPY package.json ./
-COPY package-lock.json ./
-
-# 依存関係をインストール
-RUN npm install --production
-
-# アプリケーションコードのコピー
+# 3. プロジェクトのファイルを全てコピーする
 COPY . .
 
-# ポートの指定
-EXPOSE 3000
+# 4. Mavenラッパー（ビルドツール）を実行可能にする
+RUN chmod +x mvnw
 
-# アプリケーションの起動コマンド
-CMD [ "npm", "start" ]
+# 5. アプリをビルド（作成）する。テストはスキップして時短。
+RUN ./mvnw clean package -DskipTests
+
+# 6. アプリを起動する
+# jarファイルの名前は pom.xml の設定に基づいています
+CMD ["java", "-jar", "target/CashFlowWeb-0.0.1-SNAPSHOT.jar"]
